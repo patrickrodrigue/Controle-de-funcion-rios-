@@ -52,3 +52,4 @@ C:\Users\Carla e Patrick\Desktop\Projetos\RH\bin\Debug\net6.0-windows\runtimes\b
 C:\Users\Carla e Patrick\Desktop\Projetos\RH\bin\Debug\net6.0-windows\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\Carla e Patrick\Desktop\Projetos\RH\obj\Debug\net6.0-windows\RH.csproj.AssemblyReference.cache
 C:\Users\Carla e Patrick\Desktop\Projetos\RH\obj\Debug\net6.0-windows\RH.csproj.Up2Date
+C:\Users\Carla e Patrick\Desktop\Projetos\RH\obj\Debug\net6.0-windows\RH.sourcelink.json

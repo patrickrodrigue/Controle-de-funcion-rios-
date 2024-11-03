@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using MySql.Data.MySqlClient;
 
-namespace Controle_de_funcionarios
+namespace Controle
 {
     static class Program
     {
@@ -12,6 +13,32 @@ namespace Controle_de_funcionarios
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MeuFormulario());
+        }
+    }
+
+    public class DatabaseConnection
+    {
+        private string connectionString;
+
+        public DatabaseConnection()
+        {
+            // Conexão com o banco de dados MySQL no XAMPP
+            connectionString = "Server=localhost;Database=empresa;User ID=root;Password=;SslMode=none;";
+        }
+
+        public MySqlConnection GetConnection()
+        {
+            MySqlConnection connection = new MySqlConnection(connectionString);
+            try
+            {
+                connection.Open();
+                Console.WriteLine("Conexão com o banco de dados estabelecida com sucesso.");
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine($"Erro ao conectar ao banco de dados: {ex.Message}");
+            }
+            return connection;
         }
     }
 
@@ -121,18 +148,44 @@ namespace Controle_de_funcionarios
 
         private void MeuBotao_Click(object sender, EventArgs e)
         {
-            // Captura e exibe os dados preenchidos
-            string dadosFuncionario = $"Nome: {nomeTextBox.Text}\n" +
-                                      $"Data de Nascimento: {nascimentoPicker.Value.ToShortDateString()}\n" +
-                                      $"CPF: {cpfTextBox.Text}\n" +
-                                      $"Data de Admissão: {admissaoPicker.Value.ToShortDateString()}\n" +
-                                      $"Salário: {salarioTextBox.Text}\n" +
-                                      $"Cargo: {cargoTextBox.Text}\n" +
-                                      $"Observação de Saúde: {saudeTextBox.Text}\n" +
-                                      $"Férias: {feriasTextBox.Text}\n";
-    
+            // Captura os dados preenchidos
+            string nome = nomeTextBox.Text;
+            DateTime dataNascimento = nascimentoPicker.Value;
+            string cpf = cpfTextBox.Text;
+            DateTime dataAdmissao = admissaoPicker.Value;
+            decimal salario;
+            decimal.TryParse(salarioTextBox.Text, out salario); // Tenta converter o salário para decimal
+            string cargo = cargoTextBox.Text;
+            string observacaoSaude = saudeTextBox.Text;
+            string ferias = feriasTextBox.Text;
 
-            MessageBox.Show(dadosFuncionario, "Dados do Funcionário");
+            // Conexão com o banco de dados
+            using (var connection = new DatabaseConnection().GetConnection())
+            {
+                if (connection != null) // Verifica se a conexão foi estabelecida
+                {
+                    string query = "INSERT INTO funcionarios (nome, data_nascimento, cpf, data_admissao, salario, cargo, observacao_saude, ferias) " +
+                                   "VALUES (@Nome, @DataNascimento, @Cpf, @DataAdmissao, @Salario, @Cargo, @ObservacaoSaude, @Ferias)";
+
+                    using (var command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Nome", nome);
+                        command.Parameters.AddWithValue("@DataNascimento", dataNascimento);
+                        command.Parameters.AddWithValue("@Cpf", cpf);
+                        command.Parameters.AddWithValue("@DataAdmissao", dataAdmissao);
+                        command.Parameters.AddWithValue("@Salario", salario);
+                        command.Parameters.AddWithValue("@Cargo", cargo);
+                        command.Parameters.AddWithValue("@ObservacaoSaude", observacaoSaude);
+                        command.Parameters.AddWithValue("@Ferias", ferias);
+
+                        // Executa o comando
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            // Mensagem de confirmação
+            MessageBox.Show("Funcionário cadastrado com sucesso!", "Sucesso");
         }
     }
 }
