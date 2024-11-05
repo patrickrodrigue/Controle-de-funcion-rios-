@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Controle_de_funcionarios;
 using MySql.Data.MySqlClient;
 
 namespace Controle
@@ -12,7 +13,16 @@ namespace Controle
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MeuFormulario());
+
+            LoginForm loginForm = new LoginForm();
+            if (loginForm.ShowDialog() == DialogResult.OK)
+            {
+                Application.Run(new MeuFormulario());
+            }
+            else
+            {
+                Application.Exit();
+            }
         }
     }
 
