@@ -17,7 +17,7 @@ namespace Controle
             LoginForm loginForm = new LoginForm();
             if (loginForm.ShowDialog() == DialogResult.OK)
             {
-                Application.Run(new MeuFormulario());
+                Application.Run(new FuncionariosAtivosForm());
             }
             else
             {
