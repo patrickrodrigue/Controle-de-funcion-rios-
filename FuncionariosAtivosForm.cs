@@ -3,7 +3,6 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
-
 namespace Controle
 {
     public class FuncionariosAtivosForm : Form
@@ -16,7 +15,7 @@ namespace Controle
             // Configurações do formulário
             this.Text = "Funcionários Ativos";
             this.Width = 800;
-            this.Height = 450;
+            this.Height = 800;
             this.BackColor = Color.FromArgb(240, 240, 255);
 
             // Inicializando o DataGridView
