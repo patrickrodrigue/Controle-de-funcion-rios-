@@ -3,13 +3,14 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
+
 namespace Controle
 {
     public class FuncionariosAtivosForm : Form
     {
         private DataGridView dataGridView;
         private Button novoFuncionarioButton;
-
+        private Button usuarios;
         public FuncionariosAtivosForm()
         {
             // Configurações do formulário
@@ -21,12 +22,26 @@ namespace Controle
             // Inicializando o DataGridView
             dataGridView = new DataGridView
             {
-                Dock = DockStyle.Top,
                 ReadOnly = true,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                Height = 200
+                Size = new Size(1500, 600), // Define o tamanho do DataGridView
+                Location = new Point((this.ClientSize.Width - 0) / 2, 150), // Centraliza horizontalmente e define margem superior
+            
             };
+            dataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Left; // Permite ajustar a posição na tela
             this.Controls.Add(dataGridView);
+
+               usuarios = new Button
+            {
+                Text = "Usuários",
+                Font = new Font("Arial", 10, FontStyle.Regular),
+                Size = new Size(150, 40),
+                BackColor = Color.FromArgb(100, 149, 237),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(10, 500) 
+            };
+
 
             // Botão para adicionar um novo funcionário
             novoFuncionarioButton = new Button
@@ -37,12 +52,13 @@ namespace Controle
                 BackColor = Color.FromArgb(100, 149, 237),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(10, 320)
+                Location = new Point(10, 500) // Ajusta a posição do botão mais abaixo
             };
             novoFuncionarioButton.FlatAppearance.BorderSize = 1;
             novoFuncionarioButton.FlatAppearance.BorderColor = Color.FromArgb(65, 105, 225);
             novoFuncionarioButton.Click += NovoFuncionarioButton_Click;
             this.Controls.Add(novoFuncionarioButton);
+
 
             // Carregar dados ao abrir o formulário
             Load += FuncionariosAtivosForm_Load;
@@ -54,44 +70,44 @@ namespace Controle
             CarregarFuncionariosAtivos();
         }
 
-       private void CarregarFuncionariosAtivos()
-{
-    // Query SQL para buscar todos os funcionários
-    string query = "SELECT nome, cpf, cargo, salario, data_admissao, observacao_saude, ferias, data_nascimento FROM funcionarios";
-
-    using (var connection = new DatabaseConnection().GetConnection())
-    {
-        if (connection != null)
+        private void CarregarFuncionariosAtivos()
         {
-            try
+            // Query SQL para buscar todos os funcionários
+            string query = "SELECT nome, cpf, cargo, salario, data_admissao, observacao_saude, ferias, data_nascimento FROM funcionarios";
+
+            using (var connection = new DatabaseConnection().GetConnection())
             {
-                using (var command = new MySqlCommand(query, connection))
-                using (var adapter = new MySqlDataAdapter(command))
+                if (connection != null)
                 {
-                    DataTable dataTable = new DataTable();
-                    int rowsAffected = adapter.Fill(dataTable);
-
-                    // Verifica se há registros para exibir
-                    if (rowsAffected == 0)
+                    try
                     {
-                        MessageBox.Show("Nenhum funcionário encontrado.", "Informação", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                        using (var command = new MySqlCommand(query, connection))
+                        using (var adapter = new MySqlDataAdapter(command))
+                        {
+                            DataTable dataTable = new DataTable();
+                            int rowsAffected = adapter.Fill(dataTable);
 
-                    // Configura o DataGridView para exibir os dados
-                    dataGridView.DataSource = dataTable;
+                            // Verifica se há registros para exibir
+                            if (rowsAffected == 0)
+                            {
+                                MessageBox.Show("Nenhum funcionário encontrado.", "Informação", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+
+                            // Configura o DataGridView para exibir os dados
+                            dataGridView.DataSource = dataTable;
+                        }
+                    }
+                    catch (MySqlException ex)
+                    {
+                        MessageBox.Show($"Erro ao buscar dados: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Falha na conexão com o banco de dados.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (MySqlException ex)
-            {
-                MessageBox.Show($"Erro ao buscar dados: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
-        else
-        {
-            MessageBox.Show("Falha na conexão com o banco de dados.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-}
 
         private void NovoFuncionarioButton_Click(object sender, EventArgs e)
         {
