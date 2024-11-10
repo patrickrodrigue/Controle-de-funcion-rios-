@@ -59,6 +59,8 @@ namespace Controle
         private Label nomeLabel, nascimentoLabel, cpfLabel, admissaoLabel, salarioLabel, cargoLabel, saudeLabel, feriasLabel;
         private TextBox nomeTextBox, cpfTextBox, salarioTextBox, cargoTextBox, saudeTextBox, feriasTextBox;
         private DateTimePicker nascimentoPicker, admissaoPicker;
+        private Label ruaLabel, numeroLabel, cidadeLabel, bairroLabel, cepLabel, complementoLabel;
+        private TextBox ruaTextBox, numeroTextBox, cidadeTextBox, bairroTextBox, cepTextBox, complementoTextBox;
 
         public MeuFormulario()
         {
@@ -94,6 +96,7 @@ namespace Controle
                 textBox.Width = 200;
                 this.Controls.Add(textBox);
             }
+
 
             // Campos para Nome
             AddLabelAndTextBox(ref nomeLabel, ref nomeTextBox, "Nome:", 50);
@@ -140,6 +143,19 @@ namespace Controle
 
             // Campo para Férias
             AddLabelAndTextBox(ref feriasLabel, ref feriasTextBox, "Férias:", 400);
+            // Campos para Endereço
+            AddLabelAndTextBox(ref ruaLabel, ref ruaTextBox, "Rua:", 450);
+
+            AddLabelAndTextBox(ref numeroLabel, ref numeroTextBox, "Número:", 500);
+
+            AddLabelAndTextBox(ref cidadeLabel, ref cidadeTextBox, "Cidade:", 550);
+
+            AddLabelAndTextBox(ref bairroLabel, ref bairroTextBox, "Bairro:", 600);
+
+            AddLabelAndTextBox(ref cepLabel, ref cepTextBox, "CEP:", 650);
+
+            AddLabelAndTextBox(ref complementoLabel, ref complementoTextBox, "Complemento:", 700);
+
 
             // Configurando o botão
             meuBotao = new Button();
@@ -169,33 +185,74 @@ namespace Controle
             string observacaoSaude = saudeTextBox.Text;
             string ferias = feriasTextBox.Text;
 
-            // Conexão com o banco de dados
+            // Dados de endereço
+            string rua = ruaTextBox.Text;
+            string numero = numeroTextBox.Text;
+            string cidade = cidadeTextBox.Text;
+            string bairro = bairroTextBox.Text;
+            string cep = cepTextBox.Text;
+            string complemento = complementoTextBox.Text;
+
             using (var connection = new DatabaseConnection().GetConnection())
             {
                 if (connection != null) // Verifica se a conexão foi estabelecida
                 {
-                    string query = "INSERT INTO funcionarios (nome, data_nascimento, cpf, data_admissao, salario, cargo, observacao_saude, ferias) " +
-                                   "VALUES (@Nome, @DataNascimento, @Cpf, @DataAdmissao, @Salario, @Cargo, @ObservacaoSaude, @Ferias)";
-
-                    using (var command = new MySqlCommand(query, connection))
+                    // Inicia uma transação para garantir que ambas inserções sejam atômicas
+                    using (var transaction = connection.BeginTransaction())
                     {
-                        command.Parameters.AddWithValue("@Nome", nome);
-                        command.Parameters.AddWithValue("@DataNascimento", dataNascimento);
-                        command.Parameters.AddWithValue("@Cpf", cpf);
-                        command.Parameters.AddWithValue("@DataAdmissao", dataAdmissao);
-                        command.Parameters.AddWithValue("@Salario", salario);
-                        command.Parameters.AddWithValue("@Cargo", cargo);
-                        command.Parameters.AddWithValue("@ObservacaoSaude", observacaoSaude);
-                        command.Parameters.AddWithValue("@Ferias", ferias);
+                        try
+                        {
+                            // Insere o funcionário na tabela `funcionarios`
+                            string funcionarioQuery = "INSERT INTO funcionarios (nome, data_nascimento, cpf, data_admissao, salario, cargo, observacao_saude, ferias) " +
+                                                      "VALUES (@Nome, @DataNascimento, @Cpf, @DataAdmissao, @Salario, @Cargo, @ObservacaoSaude, @Ferias)";
 
-                        // Executa o comando
-                        command.ExecuteNonQuery();
+                            using (var funcionarioCommand = new MySqlCommand(funcionarioQuery, connection, transaction))
+                            {
+                                funcionarioCommand.Parameters.AddWithValue("@Nome", nome);
+                                funcionarioCommand.Parameters.AddWithValue("@DataNascimento", dataNascimento);
+                                funcionarioCommand.Parameters.AddWithValue("@Cpf", cpf);
+                                funcionarioCommand.Parameters.AddWithValue("@DataAdmissao", dataAdmissao);
+                                funcionarioCommand.Parameters.AddWithValue("@Salario", salario);
+                                funcionarioCommand.Parameters.AddWithValue("@Cargo", cargo);
+                                funcionarioCommand.Parameters.AddWithValue("@ObservacaoSaude", observacaoSaude);
+                                funcionarioCommand.Parameters.AddWithValue("@Ferias", ferias);
+
+                                funcionarioCommand.ExecuteNonQuery();
+
+                                // Recupera o ID do funcionário inserido
+                                int funcionarioId = (int)funcionarioCommand.LastInsertedId;
+
+                                // Insere o endereço na tabela `endereco`
+                                string enderecoQuery = "INSERT INTO endereco (rua, numero, cidade, bairro, cep, complemento, funcionario_id) " +
+                                                       "VALUES (@Rua, @Numero, @Cidade, @Bairro, @Cep, @Complemento, @FuncionarioId)";
+
+                                using (var enderecoCommand = new MySqlCommand(enderecoQuery, connection, transaction))
+                                {
+                                    enderecoCommand.Parameters.AddWithValue("@Rua", rua);
+                                    enderecoCommand.Parameters.AddWithValue("@Numero", numero);
+                                    enderecoCommand.Parameters.AddWithValue("@Cidade", cidade);
+                                    enderecoCommand.Parameters.AddWithValue("@Bairro", bairro);
+                                    enderecoCommand.Parameters.AddWithValue("@Cep", cep);
+                                    enderecoCommand.Parameters.AddWithValue("@Complemento", complemento);
+                                    enderecoCommand.Parameters.AddWithValue("@FuncionarioId", funcionarioId);
+
+                                    enderecoCommand.ExecuteNonQuery();
+                                }
+                            }
+
+                            // Confirma a transação
+                            transaction.Commit();
+                            MessageBox.Show("Funcionário e endereço cadastrados com sucesso!", "Sucesso");
+                        }
+                        catch (Exception ex)
+                        {
+                            // Em caso de erro, desfaz a transação
+                            transaction.Rollback();
+                            MessageBox.Show($"Erro ao cadastrar: {ex.Message}", "Erro");
+                        }
                     }
                 }
             }
-
-            // Mensagem de confirmação
-            MessageBox.Show("Funcionário cadastrado com sucesso!", "Sucesso");
         }
     }
 }
